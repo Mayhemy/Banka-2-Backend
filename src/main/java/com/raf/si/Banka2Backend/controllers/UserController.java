@@ -33,6 +33,11 @@ public class UserController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @GetMapping(value="/ping")
+    public String ping(){
+        return "RADI";
+    }
+
     @PostMapping(value="/register", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createUser(@RequestBody RegisterRequest user) {
 

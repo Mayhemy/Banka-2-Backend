@@ -1,4 +1,4 @@
-version: '3.3'
+version: '3'
 
 services:
 
@@ -12,23 +12,25 @@ services:
 #create database emails;
 #grant all on emails.* to 'testUser'@'%' identified by '123456'; mozda ce ti ovo pomoci da allowujes sve na svojoj bazi(na stacku sam ovo nasao ali meni ne radi)
   db-users:
-    image: mariadb
+    image: mariadb:10.11
     container_name: db-users
+    hostname: db-users
     restart: always
     ports:
-      - "3306:3306"
+      - "3307:3306"
     environment:
       MARIADB_ROOT_USER: root
       MARIADB_ROOT_PASSWORD: root123
       MARIADB_DATABASE: banka2db
+      MYSQL_ROOT_PASSWORD: root123
       MYSQL_USER: raf1
       MYSQL_USER_PASSWORD: raf123
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
-    healthcheck:
-      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
-      interval: 2s
-      timeout: 5s
-      retries: 5
+#    healthcheck:
+#      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+#      interval: 2s
+#      timeout: 5s
+#      retries: 5
     volumes:
       - db-users:/var/lib/mariadb/data
 
@@ -49,15 +51,21 @@ services:
 #tako da je u ovom servisu problem, u application.propertiesu ne bi trebalo,
 #tamo sam sve zivo promenio, jedino sto ostaje je dockerfile, ne znam...
   banka2backend:
+    restart: on-failure
     build:
       context: .
       dockerfile: Dockerfile
     environment:
-      spring.datasource.jdbcUrl: jdbc:mariadb://db-users:3306/banka2db
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/banka2db?useUnicode=true&characterEncoding=utf8&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root123
     ports:
       - "8080:8080"
+    links:
+      - db-users
     depends_on:
       - db-users
+
 
   phpmyadmin:
     image: phpmyadmin
@@ -85,3 +93,7 @@ services:
 volumes:
   db-users:
   mongo-data:
+
+networks:
+  mreznopolje321:
+    external: false
